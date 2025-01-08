@@ -19,11 +19,9 @@ router.get('/send-code', (req, res) => {
 
 router.post('/register', async (req, res) => {
     try {
-        console.log(req.body);
 
         // 비밀번호 해싱
         const hashed = await bcrypt.hash(req.body.password, 10);
-        console.log(hashed);
 
         // 사용자 데이터 삽입
         let result = await db.collection('user').insertOne({
@@ -47,6 +45,26 @@ router.post('/register', async (req, res) => {
             error: error.message
         });
     }
+});
+
+router.post('/login', async (req, res, next) => {
+    if (!req.body.email || !req.body.password) {
+        return res.status(400).json({ message: '이메일과 비밀번호를 입력해주세요.' });
+    }
+
+    passport.authenticate('local', (err, user, info) => {
+        if (err) return res.status(500).json({ message: '서버 오류', error: err });
+        if (!user) return res.status(401).json({ message: info.message });
+
+        req.login(user, (err) => {
+            if (err) return res.status(500).json({ message: '로그인 실패', error: err });
+
+            res.status(200).json({
+                message: '로그인 성공',
+                user: { email: user.email, nickname: user.nickname }
+            });
+        });
+    })(req, res, next);
 });
 
 module.exports = router;
