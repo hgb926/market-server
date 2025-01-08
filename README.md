@@ -29,3 +29,4 @@
     - 한국시간 변환 라이브러리
 - npm install socket.io@4
     - WebSocket
+- npm install cors
