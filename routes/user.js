@@ -73,6 +73,7 @@ router.post('/login', async (req, res, next) => {
     if (!req.body.email || !req.body.password) {
         return res.status(400).json({ message: '이메일과 비밀번호를 입력해주세요.' });
     }
+    console.log(req.body)
 
     passport.authenticate('local', (err, user, info) => {
         if (err) return res.status(500).json({ message: '서버 오류', error: err });
@@ -83,6 +84,7 @@ router.post('/login', async (req, res, next) => {
 
             // JWT 생성
             const jwt = require('jsonwebtoken');
+            const expiresIn = req.body.autoLogin ? '30d' : '1d';
             const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
                 expiresIn: '7d', // 7일 유효
             });
@@ -91,13 +93,10 @@ router.post('/login', async (req, res, next) => {
             res.cookie('authToken', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production', // HTTPS에서만 동작
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
+                maxAge: req.body.autoLogin ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000, // 자동로그인: 30일, 일반로그인: 1일
             });
 
-            res.status(200).json({
-                message: '로그인 성공',
-                user: { email: user.email, nickname: user.nickname },
-            });
+            res.status(200).json({user});
         });
     })(req, res, next);
 });
