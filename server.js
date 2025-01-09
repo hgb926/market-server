@@ -110,3 +110,4 @@ passport.use(new LocalStrategy({
 
 
 app.use('/auth', require('./routes/user.js'))
+app.use('/post', require('./routes/post.js'))
