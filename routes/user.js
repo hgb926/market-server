@@ -4,6 +4,7 @@ const connectDB = require('./../config/database')
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
+const {ObjectId} = require("mongodb");
 
 // JWT 인증 미들웨어
 const authenticateJWT = (req, res, next) => {
@@ -21,8 +22,30 @@ const authenticateJWT = (req, res, next) => {
     });
 };
 
-router.get('/user', authenticateJWT, (req, res) => {
-    res.status(200).json(req.user); // JWT에서 디코딩된 유저 정보 반환
+router.get('/user', authenticateJWT, async (req, res) => {
+    try {
+        // JWT에서 디코딩된 유저 정보(req.user.id)를 이용해 데이터베이스에서 상세 정보를 가져옵니다.
+        const user = await db.collection('user').findOne({ _id: new ObjectId(req.user.id) });
+
+        if (!user) {
+            return res.status(404).json({ message: '유저 정보를 찾을 수 없습니다.' });
+        }
+
+        // 상세 유저 정보를 반환합니다.
+        res.status(200).json({
+            id: user._id,
+            email: user.email,
+            nickname: user.nickname,
+            address: user.address,
+            zoneCode: user.zoneCode,
+            profileUrl: user.profileUrl,
+            iat: req.user.iat,
+            exp: req.user.exp,
+        });
+    } catch (error) {
+        console.error('유저 정보를 가져오는 중 오류 발생:', error);
+        res.status(500).json({ message: '서버 오류', error: error.message });
+    }
 });
 
 
