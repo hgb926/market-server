@@ -4,6 +4,7 @@ const { ObjectId } = require('mongodb');
 const env = require('dotenv').config()
 const connectDB = require('./config/database.js');
 const session = require('express-session')
+const cookieParser = require('cookie-parser');
 const passport = require('passport')
 const LocalStrategy = require('passport-local')
 const moment = require("moment-timezone");
@@ -11,7 +12,7 @@ const bcrypt = require('bcrypt')
 const MongoStore = require('connect-mongo')
 const cors = require('cors')
 
-
+app.use(cookieParser())
 app.use(passport.initialize())
 app.use(session({
     secret: '암호화에 쓸 비번',
@@ -30,6 +31,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 const corsOptions = {
     origin: `${process.env.FRONT_URL}`,
+    credentials: true,
     optionsSuccessStatus: 200
 };
 
@@ -51,7 +53,7 @@ passport.serializeUser((user, done) => {
     process.nextTick(() => {
         done(null, {
             id : user._id,
-            username : user.username,
+            username : user.nickname,
         })
     })
 })

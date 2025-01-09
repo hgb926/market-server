@@ -3,6 +3,28 @@ const router = require('express').Router();
 const connectDB = require('./../config/database')
 const passport = require("passport");
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+
+// JWT 인증 미들웨어
+const authenticateJWT = (req, res, next) => {
+    const token = req.cookies.authToken; // 쿠키에서 토큰 가져오기
+    if (!token) {
+        return res.status(401).json({ message: '인증 토큰 없음' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ message: '유효하지 않은 토큰' });
+        }
+        req.user = decoded; // 디코딩된 유저 정보 저장
+        next();
+    });
+};
+
+router.get('/user', authenticateJWT, (req, res) => {
+    res.status(200).json(req.user); // JWT에서 디코딩된 유저 정보 반환
+});
+
 
 let db;
 connectDB.then((client) => {
@@ -59,12 +81,36 @@ router.post('/login', async (req, res, next) => {
         req.login(user, (err) => {
             if (err) return res.status(500).json({ message: '로그인 실패', error: err });
 
+            // JWT 생성
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
+                expiresIn: '7d', // 7일 유효
+            });
+
+            // HTTP-Only 쿠키에 저장
+            res.cookie('authToken', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // HTTPS에서만 동작
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
+            });
+
             res.status(200).json({
                 message: '로그인 성공',
-                user: { email: user.email, nickname: user.nickname }
+                user: { email: user.email, nickname: user.nickname },
             });
         });
     })(req, res, next);
+});
+
+router.get('/time', (req, res) => {
+    let user = req.user;
+    console.log('user!! , \n' , user)
+    res.status(200).json({user: user})
+})
+
+router.get('/logout', (req, res) => {
+    res.clearCookie('authToken', { path: '/' });
+    res.status(200).json({ message: '로그아웃 성공' });
 });
 
 module.exports = router;
