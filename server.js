@@ -29,8 +29,9 @@ app.use(passport.session())
 // post요청 console (req.body 쉽게 읽기)
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
+
 const corsOptions = {
-    origin: `${process.env.FRONT_URL}`,
+    origin: [process.env.FRONT_URL, process.env.AWS_S3_URL],
     credentials: true,
     optionsSuccessStatus: 200
 };

@@ -5,7 +5,7 @@ const passport = require("passport");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const {ObjectId} = require("mongodb");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const {S3Client, PutObjectCommand} = require("@aws-sdk/client-s3");
 
 // S3 클라이언트 설정
 const s3 = new S3Client({
@@ -15,7 +15,7 @@ const s3 = new S3Client({
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
 });
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({storage: multer.memoryStorage()});
 
 // S3에 사진 업로드 함수
 const uploadToS3 = async (file) => {
@@ -37,12 +37,12 @@ const uploadToS3 = async (file) => {
 const authenticateJWT = (req, res, next) => {
     const token = req.cookies.authToken; // 쿠키에서 토큰 가져오기
     if (!token) {
-        return res.status(401).json({ message: '인증 토큰 없음' });
+        return res.status(401).json({message: '인증 토큰 없음'});
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(403).json({ message: '유효하지 않은 토큰' });
+            return res.status(403).json({message: '유효하지 않은 토큰'});
         }
         req.user = decoded; // 디코딩된 유저 정보 저장
         next();
@@ -52,10 +52,10 @@ const authenticateJWT = (req, res, next) => {
 router.get('/user', authenticateJWT, async (req, res) => {
     try {
         // JWT에서 디코딩된 유저 정보(req.user.id)를 이용해 데이터베이스에서 상세 정보
-        const user = await db.collection('user').findOne({ _id: new ObjectId(req.user.id) });
+        const user = await db.collection('user').findOne({_id: new ObjectId(req.user.id)});
 
         if (!user) {
-            return res.status(404).json({ message: '유저 정보를 찾을 수 없습니다.' });
+            return res.status(404).json({message: '유저 정보를 찾을 수 없습니다.'});
         }
 
 
@@ -71,7 +71,7 @@ router.get('/user', authenticateJWT, async (req, res) => {
         });
     } catch (error) {
         console.error('유저 정보를 가져오는 중 오류 발생:', error);
-        res.status(500).json({ message: '서버 오류', error: error.message });
+        res.status(500).json({message: '서버 오류', error: error.message});
     }
 });
 
@@ -84,16 +84,29 @@ connectDB.then((client) => {
 })
 
 
-router.get('/send-code', (req, res) => {
-    const code = Math.floor(Math.random() * 9000) + 1000;
-    res.send(code.toString()); // 문자열로 변환
+router.post('/send-code', async (req, res) => {
+    try {
+
+        const flag = await db.collection('user').findOne({
+            email: req.body.email,
+        })
+        console.log(flag)
+        if (!flag) {
+            const code = Math.floor(Math.random() * 9000) + 1000;
+            res.status(200).send(code.toString()); // 문자열로 변환
+        } else {
+            return res.status(400).send('중복되는 이메일입니다.');
+        }
+    } catch (e) {
+        console.log(e)
+    }
 });
 
 router.post("/register", upload.single("image"), async (req, res) => {
     try {
         // 필수 데이터 검증
         if (!req.body.email || !req.body.password || !req.body.nickname) {
-            return res.status(400).json({ message: "필수 데이터를 입력해주세요." });
+            return res.status(400).json({message: "필수 데이터를 입력해주세요."});
         }
 
         // 비밀번호 해싱
@@ -130,20 +143,20 @@ router.post("/register", upload.single("image"), async (req, res) => {
 });
 router.post('/login', async (req, res, next) => {
     if (!req.body.email || !req.body.password) {
-        return res.status(400).json({ message: '이메일과 비밀번호를 입력해주세요.' });
+        return res.status(400).json({message: '이메일과 비밀번호를 입력해주세요.'});
     }
 
     passport.authenticate('local', (err, user, info) => {
-        if (err) return res.status(500).json({ message: '서버 오류', error: err });
-        if (!user) return res.status(401).json({ message: info.message });
+        if (err) return res.status(500).json({message: '서버 오류', error: err});
+        if (!user) return res.status(401).json({message: info.message});
 
         req.login(user, (err) => {
-            if (err) return res.status(500).json({ message: '로그인 실패', error: err });
+            if (err) return res.status(500).json({message: '로그인 실패', error: err});
 
             // JWT 생성
             const jwt = require('jsonwebtoken');
             const expiresIn = req.body.autoLogin ? '30d' : '1d';
-            const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
+            const token = jwt.sign({id: user._id, email: user.email}, process.env.JWT_SECRET, {
                 expiresIn: '7d', // 7일 유효
             });
 
@@ -165,8 +178,8 @@ router.get('/time', (req, res) => {
 })
 
 router.get('/logout', (req, res) => {
-    res.clearCookie('authToken', { path: '/' });
-    res.status(200).json({ message: '로그아웃 성공' });
+    res.clearCookie('authToken', {path: '/'});
+    res.status(200).json({message: '로그아웃 성공'});
 });
 
 module.exports = router;

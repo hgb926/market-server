@@ -100,10 +100,11 @@ router.post('/add', upload.array('images', 10), async (req, res) => {
 
 // 라우터: 게시글 조회
 router.get('/', async (req, res) => {
+
     try {
         const posts = await db.collection('post').find().toArray();
 
-        posts.forEach((post) => {
+        posts.reverse().forEach((post) => {
             const diffInMs = new Date() - new Date(post.createdAt);
             post.createdAt = formatRelativeTime(diffInMs)
         })
