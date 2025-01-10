@@ -86,11 +86,12 @@ connectDB.then((client) => {
 
 router.post('/send-code', async (req, res) => {
     try {
-
         const flag = await db.collection('user').findOne({
             email: req.body.email,
         })
-        console.log(flag)
+
+        // 이메일 라이브러리 사용해야 함
+
         if (!flag) {
             const code = Math.floor(Math.random() * 9000) + 1000;
             res.status(200).send(code.toString()); // 문자열로 변환
@@ -101,6 +102,23 @@ router.post('/send-code', async (req, res) => {
         console.log(e)
     }
 });
+
+router.post('/check-nickname', async (req, res) => {
+    try {
+        const flag = await db.collection('user').findOne({
+            nickname: req.body.nickname,
+        })
+
+        if (!flag) {
+            res.status(200).send('중복되지 않는 닉네임입니다!');
+        } else {
+            return res.status(400).send('중복되는 닉네임입니다.');
+        }
+    } catch (e) {
+        console.log(e)
+    }
+})
+
 
 router.post("/register", upload.single("image"), async (req, res) => {
     try {
