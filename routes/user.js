@@ -1,10 +1,37 @@
 const router = require('express').Router();
-
+const multer = require("multer");
 const connectDB = require('./../config/database')
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const {ObjectId} = require("mongodb");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+// S3 클라이언트 설정
+const s3 = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+});
+const upload = multer({ storage: multer.memoryStorage() });
+
+// S3에 사진 업로드 함수
+const uploadToS3 = async (file) => {
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `profile-images/${Date.now()}_${file.originalname}`,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+    };
+
+    const command = new PutObjectCommand(params);
+    await s3.send(command);
+
+    return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+};
+
 
 // JWT 인증 미들웨어
 const authenticateJWT = (req, res, next) => {
@@ -62,36 +89,45 @@ router.get('/send-code', (req, res) => {
     res.send(code.toString()); // 문자열로 변환
 });
 
-router.post('/register', async (req, res) => {
+router.post("/register", upload.single("image"), async (req, res) => {
     try {
+        // 필수 데이터 검증
+        if (!req.body.email || !req.body.password || !req.body.nickname) {
+            return res.status(400).json({ message: "필수 데이터를 입력해주세요." });
+        }
 
         // 비밀번호 해싱
-        const hashed = await bcrypt.hash(req.body.password, 10);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        // 프로필 사진 업로드
+        let profileUrl = null;
+        if (req.file) {
+            profileUrl = await uploadToS3(req.file);
+        }
 
         // 사용자 데이터 삽입
-        let result = await db.collection('user').insertOne({
+        const result = await db.collection("user").insertOne({
             email: req.body.email,
-            password: hashed,
+            password: hashedPassword,
             nickname: req.body.nickname,
             address: req.body.address,
             zoneCode: req.body.zoneCode,
-            profileUrl: req.body.image
+            profileUrl: profileUrl, // S3에 업로드된 URL 저장
         });
 
         // 성공 응답
         res.status(200).json({
-            message: '회원가입이 성공적으로 완료되었습니다.',
-            data: result
+            message: "회원가입이 성공적으로 완료되었습니다.",
+            data: result,
         });
     } catch (error) {
-        console.error('회원가입 중 오류 발생:', error);
+        console.error("회원가입 중 오류 발생:", error);
         res.status(500).json({
-            message: '회원가입 중 오류가 발생했습니다.',
-            error: error.message
+            message: "회원가입 중 오류가 발생했습니다.",
+            error: error.message,
         });
     }
 });
-
 router.post('/login', async (req, res, next) => {
     if (!req.body.email || !req.body.password) {
         return res.status(400).json({ message: '이메일과 비밀번호를 입력해주세요.' });
