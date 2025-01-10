@@ -3,6 +3,7 @@ const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { ObjectId } = require('mongodb');
 const connectDB = require('./../config/database');
+const { formatRelativeTime } = require('./../util/timeFormat');
 
 const router = express.Router();
 const app = express();
@@ -102,6 +103,12 @@ router.post('/add', upload.array('images', 10), async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const posts = await db.collection('post').find().toArray();
+
+        posts.forEach((post) => {
+            const diffInMs = new Date() - new Date(post.createdAt);
+            post.createdAt = formatRelativeTime(diffInMs)
+        })
+
         res.status(200).json(posts);
     } catch (e) {
         console.error(e);
