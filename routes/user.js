@@ -51,14 +51,14 @@ const authenticateJWT = (req, res, next) => {
 
 router.get('/user', authenticateJWT, async (req, res) => {
     try {
-        // JWT에서 디코딩된 유저 정보(req.user.id)를 이용해 데이터베이스에서 상세 정보를 가져옵니다.
+        // JWT에서 디코딩된 유저 정보(req.user.id)를 이용해 데이터베이스에서 상세 정보
         const user = await db.collection('user').findOne({ _id: new ObjectId(req.user.id) });
 
         if (!user) {
             return res.status(404).json({ message: '유저 정보를 찾을 수 없습니다.' });
         }
 
-        // 상세 유저 정보를 반환합니다.
+
         res.status(200).json({
             id: user._id,
             email: user.email,
@@ -132,7 +132,6 @@ router.post('/login', async (req, res, next) => {
     if (!req.body.email || !req.body.password) {
         return res.status(400).json({ message: '이메일과 비밀번호를 입력해주세요.' });
     }
-    console.log(req.body)
 
     passport.authenticate('local', (err, user, info) => {
         if (err) return res.status(500).json({ message: '서버 오류', error: err });
@@ -162,7 +161,6 @@ router.post('/login', async (req, res, next) => {
 
 router.get('/time', (req, res) => {
     let user = req.user;
-    console.log('user!! , \n' , user)
     res.status(200).json({user: user})
 })
 

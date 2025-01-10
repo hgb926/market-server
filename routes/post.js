@@ -21,9 +21,6 @@ const s3 = new S3Client({
     },
 });
 
-console.log("AWS_ACCESS_KEY_ID:", process.env.AWS_ACCESS_KEY_ID ? "Set" : "Not Set");
-console.log("AWS_SECRET_ACCESS_KEY:", process.env.AWS_SECRET_ACCESS_KEY ? "Set" : "Not Set");
-console.log("AWS_REGION:", process.env.AWS_REGION);
 
 // Multer 설정
 const upload = multer({ storage: multer.memoryStorage() });
@@ -68,6 +65,8 @@ router.post('/add', upload.array('images', 10), async (req, res) => {
         // S3에 이미지 업로드
         const imageUrls = await Promise.all(req.files.map(uploadToS3));
 
+        let distanceNum = Math.floor(Math.random() * (8.9 - 0.1), 2) + 0.1;
+
         const postData = {
             writerId: new ObjectId(writerId),
             writerInfo: JSON.parse(writerInfo),
@@ -77,12 +76,12 @@ router.post('/add', upload.array('images', 10), async (req, res) => {
             suggestFlag: suggestFlag === 'true',
             content,
             wantPlace,
-            tradeType,
-            distance: 0,
+            tradeType: tradeType,
+            status : 'do not sell',
+            distance: distanceNum,
             likes: 0,
             chats: 0,
             viewCount: 0,
-            status: '판매 중',
             createdAt: new Date(),
             category,
         };
