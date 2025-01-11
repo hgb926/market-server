@@ -104,5 +104,20 @@ router.get('/detail',async (req, res) => {
     }
 })
 
+router.get('/list', async (req, res) => {
+    console.log(req.user)
+    try {
+        let result = await db.collection('chatRoom').find({
+            $or: [
+                { 'customerInfo.customerId': new ObjectId(req.user._id) },
+                { 'sellerInfo.sellerId': new ObjectId(req.user._id) },
+            ]
+        }).toArray();
+        console.log(result)
+    } catch (e) {
+        console.log(e)
+    }
+})
+
 module.exports = router;
 
