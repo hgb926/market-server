@@ -110,7 +110,7 @@ router.post('/check-nickname', async (req, res) => {
         })
 
         if (!flag) {
-            res.status(200).send('중복되지 않는 닉네임입니다!');
+            res.status(200).send('사용 가능한 닉네임입니다!');
         } else {
             return res.status(400).send('중복되는 닉네임입니다.');
         }
