@@ -1,16 +1,16 @@
 const express = require('express');
 const multer = require('multer');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { ObjectId } = require('mongodb');
+const {S3Client, PutObjectCommand} = require('@aws-sdk/client-s3');
+const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
-const { formatRelativeTime } = require('./../util/timeFormat');
+const {formatRelativeTime} = require('./../util/timeFormat');
 
 const router = express.Router();
 const app = express();
 
 // 요청 본문 크기 제한 증가
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb', extended: true}));
 
 // S3 클라이언트 설정
 const s3 = new S3Client({
@@ -22,7 +22,7 @@ const s3 = new S3Client({
 });
 
 // Multer 설정
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({storage: multer.memoryStorage()});
 
 let db;
 connectDB
@@ -49,20 +49,41 @@ const uploadToS3 = async (file) => {
 };
 
 
-router.post('/request', async (req, res)=>{
+router.post('/request', async (req, res) => {
+
     try {
-        console.log(req.body)
-        const result = await db.collection('chatRoom').insertOne({
-            customerInfo: req.body.customerInfo,
-            sellerInfo: req.body.sellerInfo,
-            postInfo: req.body.postInfo,
-            date: new Date(),
-            lastMsg: '',
-            lastChatTime: new Date(),
+        const flag = await db.collection('chatRoom').findOne({
+            'customerInfo.customerId': new ObjectId(req.body.customerInfo.customerId),
+            'sellerInfo.sellerId': new ObjectId(req.body.sellerInfo.sellerId),
+            'postInfo.postId': new ObjectId(req.body.postInfo.postId),
         });
-        res.status(200).json({
-            chatId: result.insertedId,
-        });
+
+        if (!flag) {
+            const result = await db.collection('chatRoom').insertOne({
+                customerInfo: {
+                    ...req.body.customerInfo,
+                    customerId: new ObjectId(req.body.customerInfo.customerId), // ObjectId로 변환
+                },
+                sellerInfo: {
+                    ...req.body.sellerInfo,
+                    sellerId: new ObjectId(req.body.sellerInfo.sellerId), // ObjectId로 변환
+                },
+                postInfo: {
+                    ...req.body.postInfo,
+                    postId: new ObjectId(req.body.postInfo.postId), // ObjectId로 변환
+                },
+                date: new Date(),
+                lastMsg: '',
+                lastChatTime: new Date(),
+            });
+            res.status(200).json({
+                chatId: result.insertedId,
+            });
+        } else {
+            res.status(200).json({
+                chatId: flag._id
+            })
+        }
     } catch (e) {
         console.log(e)
         res.status(400).json({
