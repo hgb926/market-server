@@ -92,5 +92,17 @@ router.post('/request', async (req, res) => {
     }
 })
 
+router.get('/detail',async (req, res) => {
+    try {
+        const result = await db.collection('chatRoom').findOne({
+            _id: new ObjectId(req.query.id)
+        });
+        res.status(200).json(result)
+    } catch (e) {
+        console.log(e)
+        res.status(500)
+    }
+})
+
 module.exports = router;
 
