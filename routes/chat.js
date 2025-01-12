@@ -104,18 +104,25 @@ router.get('/detail',async (req, res) => {
     }
 })
 
-router.get('/list', async (req, res) => {
-    console.log(req.user)
+router.post('/list', async (req, res) => {
+
     try {
+        console.log(req.body.id)
         let result = await db.collection('chatRoom').find({
             $or: [
-                { 'customerInfo.customerId': new ObjectId(req.user._id) },
-                { 'sellerInfo.sellerId': new ObjectId(req.user._id) },
+                { 'customerInfo.customerId': new ObjectId(req.body.id) },
+                { 'sellerInfo.sellerId': new ObjectId(req.body.id) },
             ]
         }).toArray();
-        console.log(result)
+
+        if (result) {
+            res.status(200).json(result)
+        } else {
+            res.status(400)
+        }
     } catch (e) {
         console.log(e)
+        res.status(400)
     }
 })
 
