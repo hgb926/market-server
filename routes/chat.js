@@ -5,8 +5,10 @@ const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
 const {formatRelativeTime} = require('./../util/timeFormat');
 
+
 const router = express.Router();
 const app = express();
+
 
 // 요청 본문 크기 제한 증가
 app.use(express.json({limit: '50mb'}));
@@ -125,6 +127,7 @@ router.post('/list', async (req, res) => {
         res.status(400)
     }
 })
+
 
 module.exports = router;
 
