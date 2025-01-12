@@ -51,6 +51,14 @@ wss.on("connection", (ws) => {
                 date: new Date(),
             });
 
+            await db.collection('chatRoom').updateOne(
+                {_id: new ObjectId(data.room)},
+                {$set: {
+                        lastChatTime : new Date(),
+                        lastMsg : data.text
+                    }},
+            )
+
             // 방에 있는 모든 클라이언트에 메시지 전송
             const room = rooms[data.room];
             if (room) {

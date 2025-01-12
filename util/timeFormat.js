@@ -25,7 +25,7 @@ const formatSendTime = (time) => {
     } else {
         str = '오전'
     }
-    const fullDate = time.getFullYear()+'년'+ time.getMonth()+1+'월' + time.getDate()+"일"
+    const fullDate = time.getFullYear()+'년 '+ time.getMonth()+1+'월 ' + time.getDate()+"일"
     return [`${fullDate}`, `${str} ${hours}:${minutes}`]
 }
 

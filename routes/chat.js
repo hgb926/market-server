@@ -4,6 +4,7 @@ const {S3Client, PutObjectCommand} = require('@aws-sdk/client-s3');
 const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
 const {formatSendTime} = require('./../util/timeFormat');
+const {formatRelativeTime} = require("../util/timeFormat");
 
 
 const router = express.Router();
@@ -140,9 +141,14 @@ router.post('/list', async (req, res) => {
                 { 'sellerInfo.sellerId': new ObjectId(req.body.id) },
             ]
         }).toArray();
-        console.log(result)
 
         if (result) {
+            for (const ele of result) {
+                if (ele.lastChatTime) {
+                    const diffInMs = new Date() - new Date(ele.lastChatTime);
+                    ele.relativeTime = formatRelativeTime(diffInMs)
+                }
+            }
             res.status(200).json(result)
         } else {
             console.log("결과 없음")
