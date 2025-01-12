@@ -20,19 +20,22 @@ const wss = new WebSocketServer({ server });
 // WebSocket 연결 이벤트
 wss.on('connection', (ws) => {
     console.log("WebSocket 연결됨");
+
     ws.on('message', (message) => {
         const data = JSON.parse(message);
-        console.log("수신된 메시지:", data);
 
-        // 연결된 모든 클라이언트에 메시지 브로드캐스트
-        wss.clients.forEach((client) => {
-            if (client.readyState === ws.OPEN) {
-                client.send(JSON.stringify(data));
-            }
-        });
+        if (data) {
+            console.log("수신된 메시지:", data);
+
+            // 연결된 모든 클라이언트에 메시지 브로드캐스트
+            wss.clients.forEach((client) => {
+                if (client.readyState === ws.OPEN) {
+                    client.send(JSON.stringify({ event: 'serverToClient', message: `${data.text}` }));
+                }
+            });
+        }
     });
 });
-
 // Express 앱 설정
 app.use(cookieParser());
 app.use(cors({
