@@ -17,25 +17,73 @@ const { WebSocketServer } = require('ws');
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
+// 방 데이터를 저장할 객체
+const rooms = {};
+
 // WebSocket 연결 이벤트
-wss.on('connection', (ws) => {
+wss.on("connection", (ws) => {
     console.log("WebSocket 연결됨");
 
-    ws.on('message', (message) => {
+    // 클라이언트가 특정 방에 참여 요청
+    ws.on("message", async (message) => {
         const data = JSON.parse(message);
 
-        if (data) {
+        if (data.event === "joinRoom") {
+            // 클라이언트를 특정 방에 추가
+            const room = data.room;
+            if (!rooms[room]) {
+                rooms[room] = new Set();
+            }
+            rooms[room].add(ws);
+            ws.room = room; // WebSocket 객체에 방 정보 저장
+            console.log(`클라이언트가 방에 참여: ${room}`);
+        }
+
+        if (data.event === "sendMessage") {
             console.log("수신된 메시지:", data);
 
-            // 연결된 모든 클라이언트에 메시지 브로드캐스트
-            wss.clients.forEach((client) => {
-                if (client.readyState === ws.OPEN) {
-                    client.send(JSON.stringify({ event: 'serverToClient', message: `${data.text}` }));
-                }
+            // 메시지 저장 (MongoDB 예제)
+            await db.collection("chatMsg").insertOne({
+                message: data.text,
+                writer: new ObjectId(data.writer),
+                date: data.date,
+                room: new ObjectId(data.room),
             });
+
+            // 방에 있는 모든 클라이언트에 메시지 전송
+            const room = rooms[data.room];
+            if (room) {
+                room.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(
+                            JSON.stringify({
+                                event: "serverToClient",
+                                message: data.text,
+                                writer: data.writer,
+                                date: data.date,
+                                room: data.room,
+                            })
+                        );
+                    }
+                });
+            }
         }
     });
+
+    // 클라이언트 연결 해제 시 방에서 제거
+    ws.on("close", () => {
+        const room = ws.room;
+        if (room && rooms[room]) {
+            rooms[room].delete(ws);
+            if (rooms[room].size === 0) {
+                delete rooms[room]; // 방이 비었으면 삭제
+            }
+        }
+        console.log("클라이언트 연결 종료");
+    });
 });
+
+
 // Express 앱 설정
 app.use(cookieParser());
 app.use(cors({
