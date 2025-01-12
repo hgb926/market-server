@@ -44,10 +44,10 @@ wss.on("connection", (ws) => {
 
             // 메시지 저장 (MongoDB 예제)
             await db.collection("chatMsg").insertOne({
-                message: data.text,
-                writer: new ObjectId(data.writer),
-                date: data.date,
                 room: new ObjectId(data.room),
+                text: data.text,
+                writer: new ObjectId(data.writer),
+                date: new Date(),
             });
 
             // 방에 있는 모든 클라이언트에 메시지 전송
@@ -58,10 +58,10 @@ wss.on("connection", (ws) => {
                         client.send(
                             JSON.stringify({
                                 event: "serverToClient",
-                                message: data.text,
+                                room: data.room,
+                                text: data.text,
                                 writer: data.writer,
                                 date: data.date,
-                                room: data.room,
                             })
                         );
                     }

@@ -15,4 +15,18 @@ const formatRelativeTime = (diffInMs) => {
     }
 }
 
-module.exports = { formatRelativeTime }
+const formatSendTime = (time) => {
+    let str = ''
+    let hours = time.getHours();
+    let minutes = time.getMinutes();
+    if (hours > 12) {
+        hours = hours - 12
+        str = '오후'
+    } else {
+        str = '오전'
+    }
+    const fullDate = time.getFullYear()+'년'+ time.getMonth()+1+'월' + time.getDate()+"일"
+    return [`${fullDate}`, `${str} ${hours}:${minutes}`]
+}
+
+module.exports = {formatRelativeTime, formatSendTime}

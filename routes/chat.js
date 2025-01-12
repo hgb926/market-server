@@ -3,7 +3,7 @@ const multer = require('multer');
 const {S3Client, PutObjectCommand} = require('@aws-sdk/client-s3');
 const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
-const {formatRelativeTime} = require('./../util/timeFormat');
+const {formatSendTime} = require('./../util/timeFormat');
 
 
 const router = express.Router();
@@ -94,11 +94,20 @@ router.post('/request', async (req, res) => {
     }
 })
 
-router.get('/detail',async (req, res) => {
+// 한 채팅방의 대화목록 조회
+router.get('/chat-detail',async (req, res) => {
+
     try {
-        const result = await db.collection('chatRoom').findOne({
-            _id: new ObjectId(req.query.id)
-        });
+        console.log(`req.query.id = ${req.query.id}`)
+        const result = await db.collection('chatMsg').find({
+            room: new ObjectId(req.query.id)
+        }).toArray();
+        for (const ele of result) {
+            ele['formatTime'] = formatSendTime(ele.date)
+        }
+
+
+        console.log(`result in 103 \n`, result)
         res.status(200).json(result)
     } catch (e) {
         console.log(e)
@@ -106,20 +115,37 @@ router.get('/detail',async (req, res) => {
     }
 })
 
-router.post('/list', async (req, res) => {
-
+// 한 채팅방에 대한 정보 조회
+router.get('/detail', async (req, res) => {
+    console.log('요청 들어옴')
     try {
-        console.log(req.body.id)
+        const result = await db.collection('chatRoom').findOne({
+            _id: new ObjectId(req.query.id)
+        })
+        console.log(`result in 117 \n`, result)
+        res.status(200).json(result)
+    } catch (e) {
+        console.log(e)
+        res.status(500)
+    }
+})
+
+// 한 유저의 채팅 리스트 조회
+router.post('/list', async (req, res) => {
+    console.log('req.body in list ',req.body.id)
+    try {
         let result = await db.collection('chatRoom').find({
             $or: [
                 { 'customerInfo.customerId': new ObjectId(req.body.id) },
                 { 'sellerInfo.sellerId': new ObjectId(req.body.id) },
             ]
         }).toArray();
+        console.log(result)
 
         if (result) {
             res.status(200).json(result)
         } else {
+            console.log("결과 없음")
             res.status(400)
         }
     } catch (e) {
