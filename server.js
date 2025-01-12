@@ -12,6 +12,7 @@ const MongoStore = require('connect-mongo');
 const cors = require('cors');
 const { createServer } = require('http');
 const { WebSocketServer } = require('ws');
+const {formatSendTime} = require("./util/timeFormat");
 
 // WebSocket 서버 설정
 const server = createServer(app);
@@ -36,11 +37,11 @@ wss.on("connection", (ws) => {
             }
             rooms[room].add(ws);
             ws.room = room; // WebSocket 객체에 방 정보 저장
-            console.log(`클라이언트가 방에 참여: ${room}`);
+
         }
 
         if (data.event === "sendMessage") {
-            console.log("수신된 메시지:", data);
+
 
             // 메시지 저장 (MongoDB 예제)
             await db.collection("chatMsg").insertOne({
@@ -61,7 +62,8 @@ wss.on("connection", (ws) => {
                                 room: data.room,
                                 text: data.text,
                                 writer: data.writer,
-                                date: data.date,
+                                date: new Date(),
+                                formatTime: formatSendTime(new Date())
                             })
                         );
                     }
