@@ -49,6 +49,7 @@ wss.on("connection", (ws) => {
                 text: data.text,
                 writer: new ObjectId(data.writer),
                 date: new Date(),
+                taker: new ObjectId(data.taker)
             });
 
             await db.collection('chatRoom').updateOne(

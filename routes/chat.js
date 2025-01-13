@@ -27,6 +27,27 @@ const s3 = new S3Client({
 // Multer 설정
 const upload = multer({storage: multer.memoryStorage()});
 
+let clients = {}; // { userId: response }
+
+router.get('/sse', (req, res) => {
+    // 클라이언트의 userId를 query로 받는다
+    const userId = req.query.userId;
+    console.log(`sse in userId : `, userId)
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    // client 연결을 userId에 매핑
+    clients[userId] = res;
+
+    // 연결 종료 시 연결 삭제
+    // req.on('close', () => {
+    //     delete clients[userId];
+    // });
+});
+
+
 let db;
 let changeStream;
 connectDB.then((client) => {
@@ -36,6 +57,32 @@ connectDB.then((client) => {
         ]
 
         changeStream = db.collection('chatMsg').watch(condition);
+
+        changeStream.on('change', async (change) => {
+
+            const newMessage = change.fullDocument
+            const foundUser = await db.collection('user').findOne({
+                _id: new ObjectId(newMessage.writer)
+            });
+            const foundRoom = await db.collection('chatRoom').findOne({
+                _id: new ObjectId(newMessage.room)
+            });
+            const takerId = newMessage.taker.toString();
+
+            const payload = {
+                ...newMessage,
+                nickname: foundUser.nickname,
+                postTitle: foundRoom.postInfo.postTitle,
+                profileUrl: foundUser.profileUrl
+            }
+
+            if (clients[takerId]) {
+                clients[takerId].write(`data: ${JSON.stringify(payload)}\n\n`);
+                console.log("전송 완료")
+            }
+
+        })
+
     })
     .catch((err) => {
         console.error(err);
@@ -121,7 +168,6 @@ router.get('/chat-detail',async (req, res) => {
 
 // 한 채팅방에 대한 정보 조회
 router.get('/detail', async (req, res) => {
-    console.log('요청 들어옴')
     try {
         const result = await db.collection('chatRoom').findOne({
             _id: new ObjectId(req.query.id)
@@ -164,18 +210,18 @@ router.post('/list', async (req, res) => {
 })
 
 
-router.get('/stream/list', (req, res) => {
-    res.writeHead(200, {
-        "Connection" : "keep-alive",
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache"
-    })
-    changeStream.on('change', (result) => {
-        console.log(`result : ${result}`)
-        console.log(`result.fullDocument : \n ${result.fullDocument}`)
-    })
-
-})
+// router.get('/stream/list', (req, res) => {
+//     res.writeHead(200, {
+//         "Connection" : "keep-alive",
+//         "Content-Type": "text/event-stream",
+//         "Cache-Control": "no-cache"
+//     })
+//     changeStream.on('change', (result) => {
+//         console.log(`result : ${result}`)
+//         console.log(`result.fullDocument : \n ${result.fullDocument}`)
+//     })
+//
+// })
 
 
 module.exports = router;
