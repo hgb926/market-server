@@ -115,4 +115,19 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.post('/detail', async (req, res ) => {
+    try {
+        console.log(req.body.id)
+        let result = await db.collection('post').findOne({
+            _id : new ObjectId(req.body.id)
+        });
+        const diffInMs = new Date() - new Date(result.createdAt);
+        result.createdAt = formatRelativeTime(diffInMs)
+        res.status(200).json(result)
+    } catch (e) {
+        console.log(e)
+        res.status(400)
+    }
+})
+
 module.exports = router;

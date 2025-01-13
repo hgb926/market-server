@@ -18,7 +18,7 @@ const formatRelativeTime = (diffInMs) => {
 const formatSendTime = (time) => {
     let str = ''
     let hours = time.getHours();
-    let minutes = time.getMinutes();
+    let minutes = ("" + time.getMinutes()).length !== 2 ? "0" + time.getMinutes() : time.getMinutes();
     if (hours > 12) {
         hours = hours - 12
         str = '오후'
