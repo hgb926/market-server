@@ -14,13 +14,13 @@ const { createServer } = require('http');
 const { WebSocketServer } = require('ws');
 const {formatSendTime} = require("./util/timeFormat");
 
-// WebSocket 서버 설정
+
+// ===================  WebSocket 서버 설정  ==================== //
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
 // 방 데이터를 저장할 객체
 const rooms = {};
-
 // WebSocket 연결 이벤트
 wss.on("connection", (ws) => {
     console.log("WebSocket 연결됨");
@@ -94,7 +94,9 @@ wss.on("connection", (ws) => {
 });
 
 
-// Express 앱 설정
+
+
+// ===================  Express 앱 설정  ==================== //
 app.use(cookieParser());
 app.use(cors({
     origin: [process.env.FRONT_URL, process.env.AWS_S3_URL],
@@ -143,7 +145,7 @@ passport.deserializeUser(async (user, done) => {
     done(null, result);
 });
 
-// 라우터 설정
+// ==================== 라우터 설정 ==================== //
 app.use('/auth', require('./routes/user.js'));
 app.use('/post', require('./routes/post.js'));
 app.use('/chat', require('./routes/chat.js'));

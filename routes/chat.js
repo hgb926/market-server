@@ -28,9 +28,14 @@ const s3 = new S3Client({
 const upload = multer({storage: multer.memoryStorage()});
 
 let db;
-connectDB
-    .then((client) => {
+let changeStream;
+connectDB.then((client) => {
         db = client.db("market");
+        const condition = [
+            { $match : { operationType : "insert" } }
+        ]
+
+        changeStream = db.collection('chatMsg').watch(condition);
     })
     .catch((err) => {
         console.error(err);
@@ -107,8 +112,6 @@ router.get('/chat-detail',async (req, res) => {
             ele['formatTime'] = formatSendTime(ele.date)
         }
 
-
-        console.log(`result in 103 \n`, result)
         res.status(200).json(result)
     } catch (e) {
         console.log(e)
@@ -123,7 +126,7 @@ router.get('/detail', async (req, res) => {
         const result = await db.collection('chatRoom').findOne({
             _id: new ObjectId(req.query.id)
         })
-        console.log(`result in 117 \n`, result)
+
         res.status(200).json(result)
     } catch (e) {
         console.log(e)
@@ -158,6 +161,20 @@ router.post('/list', async (req, res) => {
         console.log(e)
         res.status(400)
     }
+})
+
+
+router.get('/stream/list', (req, res) => {
+    res.writeHead(200, {
+        "Connection" : "keep-alive",
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache"
+    })
+    changeStream.on('change', (result) => {
+        console.log(`result : ${result}`)
+        console.log(`result.fullDocument : \n ${result.fullDocument}`)
+    })
+
 })
 
 
