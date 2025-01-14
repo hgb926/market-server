@@ -1,16 +1,16 @@
 const express = require('express');
 const multer = require('multer');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { ObjectId } = require('mongodb');
+const {S3Client, PutObjectCommand} = require('@aws-sdk/client-s3');
+const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
-const { formatRelativeTime } = require('./../util/timeFormat');
+const {formatRelativeTime} = require('./../util/timeFormat');
 
 const router = express.Router();
 const app = express();
 
 // 요청 본문 크기 제한 증가
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb', extended: true}));
 
 // S3 클라이언트 설정
 const s3 = new S3Client({
@@ -23,7 +23,7 @@ const s3 = new S3Client({
 
 
 // Multer 설정
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({storage: multer.memoryStorage()});
 
 let db;
 connectDB
@@ -52,7 +52,7 @@ const uploadToS3 = async (file) => {
 // 라우터: 게시글 추가
 router.post('/add', upload.array('images', 10), async (req, res) => {
     try {
-        const { title, content, category, price, suggestFlag, writerId, writerInfo, wantPlace, tradeType } = req.body;
+        const {title, content, category, price, suggestFlag, writerId, writerInfo, wantPlace, tradeType} = req.body;
 
         if (!title || !content) {
             return res.status(400).send('모든 필드를 입력해주세요.');
@@ -77,7 +77,7 @@ router.post('/add', upload.array('images', 10), async (req, res) => {
             content,
             wantPlace,
             tradeType: tradeType,
-            status : 'do not sell',
+            status: 'do not sell',
             distance: distanceNum,
             likes: [],
             chats: 0,
@@ -115,15 +115,15 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/detail', async (req, res ) => {
+router.post('/detail', async (req, res) => {
     try {
         console.log(req.body.id)
         let result = await db.collection('post').findOne({
-            _id : new ObjectId(req.body.id)
+            _id: new ObjectId(req.body.id)
         });
         await db.collection('post').updateOne(
             {_id: new ObjectId(req.body.id)},
-            { $inc: { viewCount: 1 } }
+            {$inc: {viewCount: 1}}
         )
         const diffInMs = new Date() - new Date(result.createdAt);
         result.createdAt = formatRelativeTime(diffInMs)
@@ -136,17 +136,30 @@ router.post('/detail', async (req, res ) => {
 
 
 router.post('/reaction', async (req, res) => {
-
+    console.log(req.body)
     try {
         const result = await db.collection('post').findOne({
             _id: new ObjectId(req.body.postId)
         });
 
+        const isLiked = await db.collection('notice').findOne({
+            writerId: new ObjectId(req.body.writerId),
+            senderNickname: req.body.senderNickname,
+            postId: new ObjectId(req.body.postId),
+        });
 
-        // 좋아요 누를때 처음이라면
-        // 게시글 id, 유저id, result.writerId 받고, createdAt, message 작성 후 db 저장
+        if (!isLiked) { // 처음 좋아요 누른거라면 알림 전송
 
-
+            await db.collection('notice').insertOne({
+                postId: new ObjectId(req.body.postId),
+                writerId: new ObjectId(req.body.writerId),
+                postImage: req.body.postImage,
+                postTitle: req.body.postTitle,
+                senderNickname: req.body.senderNickname,
+                createdAt: new Date(),
+                type: 'like'
+            })
+        }
 
         // ObjectId로 변환하여 비교
         const userId = new ObjectId(req.body.userId);
@@ -158,20 +171,21 @@ router.post('/reaction', async (req, res) => {
 
             const deleteLikeList = result.likes.filter(userId => userId.toString() !== req.body.userId);
             await db.collection('post').updateOne(
-                { _id: new ObjectId(req.body.postId) },
-                { $set: { likes: deleteLikeList } }
+                {_id: new ObjectId(req.body.postId)},
+                {$set: {likes: deleteLikeList}}
             );
             res.status(200).send('취소');
         } else {
             // 좋아요 추가
             const addLikeList = [...result.likes, new ObjectId(req.body.userId)];
             await db.collection('post').updateOne(
-                { _id: new ObjectId(req.body.postId) },
-                { $set: { likes: addLikeList } }
+                {_id: new ObjectId(req.body.postId)},
+                {$set: {likes: addLikeList}}
             );
             res.status(200).send('추가');
         }
-    } catch (e) {
+    } catch
+        (e) {
         console.error(e);
         res.status(400).send('에러 발생');
     }
