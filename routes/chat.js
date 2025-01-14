@@ -27,7 +27,10 @@ const s3 = new S3Client({
 // Multer 설정
 const upload = multer({storage: multer.memoryStorage()});
 
-let clients = {}; // { userId: response }
+
+// =========================  SSE 설정  ======================== //
+// =============  글로벌 SSE 설정  ============= //
+let globalClient = {}; // 클라이언트 RootLayout 엔드포인트 { userId: response }
 
 router.get('/sse', (req, res) => {
     // 클라이언트의 userId를 query로 받는다
@@ -39,26 +42,43 @@ router.get('/sse', (req, res) => {
     res.flushHeaders();
 
     // client 연결을 userId에 매핑
-    clients[userId] = res;
+    globalClient[userId] = res;
 
     // 연결 종료 시 연결 삭제
     req.on('close', () => {
-        delete clients[userId];
+        delete globalClient[userId];
+    });
+});
+
+router.get('/sse/room', (req, res) => {
+    const userId = req.query.userId;
+    console.log(`room SSE 연결 요청, userId: ${userId}`);
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    roomClient[userId] = res;
+
+    req.on('close', () => {
+        delete roomClient[userId];
+        console.log(`room SSE 연결 종료, userId: ${userId}`);
     });
 });
 
 
 let db;
-let changeStream;
+let globalChangeStream;
 connectDB.then((client) => {
         db = client.db("market");
         const condition = [
             { $match : { operationType : "insert" } }
         ]
 
-        changeStream = db.collection('chatMsg').watch(condition);
+        globalChangeStream = db.collection('chatMsg').watch(condition);
 
-        changeStream.on('change', async (change) => {
+        globalChangeStream.on('change', async (change) => {
 
             const newMessage = change.fullDocument
             const foundUser = await db.collection('user').findOne({
@@ -76,8 +96,8 @@ connectDB.then((client) => {
                 profileUrl: foundUser.profileUrl
             }
 
-            if (clients[takerId]) {
-                clients[takerId].write(`data: ${JSON.stringify(payload)}\n\n`);
+            if (globalClient[takerId]) {
+                globalClient[takerId].write(`data: ${JSON.stringify(payload)}\n\n`);
                 console.log("전송 완료")
             }
 
@@ -87,6 +107,47 @@ connectDB.then((client) => {
     .catch((err) => {
         console.error(err);
     });
+
+// =============  Room 관련 SSE 설정  ============= //
+let roomClient = {};
+// 기존의 connectDB와 동일한 db 객체를 사용
+let roomChangeStream;
+
+connectDB.then((client) => {
+    const db = client.db("market");
+
+    // chatRoom 컬렉션에 대한 watch 설정
+    const roomCondition = [
+        { $match: { operationType: "insert" } } // 변경 사항을 감지
+    ];
+
+    roomChangeStream = db.collection('chatRoom').watch(roomCondition);
+
+    roomChangeStream.on('change', async (change) => {
+        const newRoom = change.fullDocument;
+
+        // 예시: 필요한 데이터를 가공
+        const payload = {
+            roomId: newRoom._id,
+            customerInfo: newRoom.customerInfo,
+            sellerInfo: newRoom.sellerInfo,
+            postInfo: newRoom.postInfo,
+            createdAt: newRoom.date,
+        };
+
+        console.log('새로운 채팅방 생성:', payload);
+
+        // 필요한 클라이언트에게 데이터 전송
+        Object.keys(roomClient).forEach((userId) => {
+            roomClient[userId].write(`data: ${JSON.stringify(payload)}\n\n`);
+        });
+    });
+
+}).catch((err) => {
+    console.error('chatRoom watch 설정 중 오류 발생:', err);
+});
+
+
 
 // 파일 업로드 함수
 const uploadToS3 = async (file) => {
