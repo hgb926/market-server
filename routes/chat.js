@@ -42,9 +42,9 @@ router.get('/sse', (req, res) => {
     clients[userId] = res;
 
     // 연결 종료 시 연결 삭제
-    // req.on('close', () => {
-    //     delete clients[userId];
-    // });
+    req.on('close', () => {
+        delete clients[userId];
+    });
 });
 
 
@@ -210,18 +210,21 @@ router.post('/list', async (req, res) => {
 })
 
 
-// router.get('/stream/list', (req, res) => {
-//     res.writeHead(200, {
-//         "Connection" : "keep-alive",
-//         "Content-Type": "text/event-stream",
-//         "Cache-Control": "no-cache"
-//     })
-//     changeStream.on('change', (result) => {
-//         console.log(`result : ${result}`)
-//         console.log(`result.fullDocument : \n ${result.fullDocument}`)
-//     })
-//
-// })
+router.delete('/delete/:id', async (req, res) => {
+    console.log(req.params.id)
+    try {
+        await db.collection('chatRoom').deleteOne({
+            _id: new ObjectId(req.params.id),
+        });
+        await db.collection('chatMsg').deleteMany({
+            room: new ObjectId(req.params.id),
+        })
+        res.status(200).send("삭제 성공")
+    } catch (e) {
+        console.log(e)
+        res.status(400)
+    }
+})
 
 
 module.exports = router;
