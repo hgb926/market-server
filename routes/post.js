@@ -79,7 +79,7 @@ router.post('/add', upload.array('images', 10), async (req, res) => {
             tradeType: tradeType,
             status : 'do not sell',
             distance: distanceNum,
-            likes: 0,
+            likes: [],
             chats: 0,
             viewCount: 0,
             createdAt: new Date(),
@@ -127,6 +127,45 @@ router.post('/detail', async (req, res ) => {
     } catch (e) {
         console.log(e)
         res.status(400)
+    }
+})
+
+
+router.post('/reaction', async (req, res) => {
+
+    try {
+        const result = await db.collection('post').findOne({
+            _id: new ObjectId(req.body.postId)
+        });
+
+        // ObjectId로 변환하여 비교
+        const userId = new ObjectId(req.body.userId);
+
+        if (result.likes.some(like => like.toString() === userId.toString())) {
+            // 이미 좋아요가 되어있다면 좋아요 취소
+            console.log(result.likes[1]); // 배열의 두 번째 요소 확인
+            console.log(req.body.userId); // 사용자 ID 확인
+
+            const deleteLikeList = result.likes.filter(userId => userId.toString() !== req.body.userId);
+            await db.collection('post').updateOne(
+                { _id: new ObjectId(req.body.postId) },
+                { $set: { likes: deleteLikeList } }
+            );
+            console.log('좋아요 취소 완료');
+        } else {
+            // 좋아요 추가
+            const addLikeList = [...result.likes, new ObjectId(req.body.userId)];
+            await db.collection('post').updateOne(
+                { _id: new ObjectId(req.body.postId) },
+                { $set: { likes: addLikeList } }
+            );
+            console.log('좋아요 추가 완료');
+        }
+
+        res.status(200).send('리액션 성공');
+    } catch (e) {
+        console.error(e);
+        res.status(400).send('에러 발생');
     }
 })
 
