@@ -121,6 +121,10 @@ router.post('/detail', async (req, res ) => {
         let result = await db.collection('post').findOne({
             _id : new ObjectId(req.body.id)
         });
+        await db.collection('post').updateOne(
+            {_id: new ObjectId(req.body.id)},
+            { $inc: { viewCount: 1 } }
+        )
         const diffInMs = new Date() - new Date(result.createdAt);
         result.createdAt = formatRelativeTime(diffInMs)
         res.status(200).json(result)
