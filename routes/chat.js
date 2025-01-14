@@ -5,8 +5,6 @@ const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
 const {formatSendTime} = require('./../util/timeFormat');
 const {formatRelativeTime} = require("../util/timeFormat");
-
-
 const router = express.Router();
 const app = express();
 

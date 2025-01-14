@@ -150,6 +150,7 @@ passport.deserializeUser(async (user, done) => {
 app.use('/auth', require('./routes/user.js'));
 app.use('/post', require('./routes/post.js'));
 app.use('/chat', require('./routes/chat.js'));
+app.use('/notice', require('./routes/notice'))
 
 // DB 연결 후 서버 시작
 let db;

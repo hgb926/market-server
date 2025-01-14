@@ -142,6 +142,12 @@ router.post('/reaction', async (req, res) => {
             _id: new ObjectId(req.body.postId)
         });
 
+
+        // 좋아요 누를때 처음이라면
+        // 게시글 id, 유저id, result.writerId 받고, createdAt, message 작성 후 db 저장
+
+
+
         // ObjectId로 변환하여 비교
         const userId = new ObjectId(req.body.userId);
 
