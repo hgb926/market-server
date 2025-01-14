@@ -151,7 +151,7 @@ router.post('/reaction', async (req, res) => {
                 { _id: new ObjectId(req.body.postId) },
                 { $set: { likes: deleteLikeList } }
             );
-            console.log('좋아요 취소 완료');
+            res.status(200).send('취소');
         } else {
             // 좋아요 추가
             const addLikeList = [...result.likes, new ObjectId(req.body.userId)];
@@ -159,10 +159,8 @@ router.post('/reaction', async (req, res) => {
                 { _id: new ObjectId(req.body.postId) },
                 { $set: { likes: addLikeList } }
             );
-            console.log('좋아요 추가 완료');
+            res.status(200).send('추가');
         }
-
-        res.status(200).send('리액션 성공');
     } catch (e) {
         console.error(e);
         res.status(400).send('에러 발생');

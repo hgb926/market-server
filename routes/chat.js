@@ -192,6 +192,12 @@ router.post('/request', async (req, res) => {
                 lastMsg: '',
                 lastChatTime: new Date(),
             });
+
+            await db.collection('post').updateOne(
+                {_id: new ObjectId(req.body.postInfo.postId)},
+                { $inc: { chats: 1 } }
+            )
+
             res.status(200).json({
                 chatId: result.insertedId,
             });
