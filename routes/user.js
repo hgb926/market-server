@@ -6,6 +6,20 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const {ObjectId} = require("mongodb");
 const {S3Client, PutObjectCommand} = require("@aws-sdk/client-s3");
+const nodeMailer = require('nodemailer')
+const {makeMailBody} = require('./../util/mailForm')
+
+// 메일 설정
+const mailClient = nodeMailer.createTransport({
+    service: process.env.EMAIL_SERVICE,
+    host: process.env.EMAIL_HOST,
+    tls: true,
+    port: process.env.EMAIL_PORT,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+    }
+})
 
 // S3 클라이언트 설정
 const s3 = new S3Client({
@@ -90,10 +104,22 @@ router.post('/send-code', async (req, res) => {
             email: req.body.email,
         })
 
-        // 이메일 라이브러리 사용해야 함
-
         if (!flag) {
             const code = Math.floor(Math.random() * 9000) + 1000;
+            const mailOption = {
+                from: process.env.EMAIL_USER,
+                to: req.body.email,
+                subject: '인증하시오 - 기범',
+                html: makeMailBody(code)
+            }
+            mailClient.sendMail(mailOption, function(error, info){
+                if (error) {
+                    console.log('에러 발생!!!' + error);
+                }
+                else {
+                    console.log('전송이 완료 되었습니다.' + info.response);
+                }
+            });
             res.status(200).send(code.toString()); // 문자열로 변환
         } else {
             return res.status(400).send('중복되는 이메일입니다.');
