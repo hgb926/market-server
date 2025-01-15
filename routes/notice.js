@@ -48,7 +48,7 @@ connectDB
     .catch((err) => {
         console.error(err);
     });
-// sse 설정도 해야함
+
 
 router.get('/:id', async (req, res) => {
     try {
@@ -70,6 +70,19 @@ router.get('/:id', async (req, res) => {
     } catch (e) {
         res.status(400).json("실패")
         console.log(e)
+    }
+})
+
+router.post('/click', async (req, res) => {
+    try {
+        console.log('noticeId ', req.body.noticeId)
+        let foundNotice = await db.collection('notice').updateOne(
+            {_id: new ObjectId(req.body.noticeId)},
+            {$set: {isClicked: true}}
+        );
+        res.status(200).json(foundNotice)
+    } catch (e) {
+        res.status(400).json("실패")
     }
 })
 

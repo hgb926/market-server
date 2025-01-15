@@ -109,7 +109,10 @@ router.get('/', async (req, res) => {
             post.createdAt = formatRelativeTime(diffInMs)
         })
 
-
+        await db.collection('post').updateMany(
+            {}, // 조건 없이 모든 도큐먼트 선택
+            { $set: { likes: [], chats: 0 } } // `likes` 필드를 빈 배열로 설정
+        );
 
         res.status(200).json(posts);
     } catch (e) {
@@ -159,7 +162,8 @@ router.post('/reaction', async (req, res) => {
                 postTitle: req.body.postTitle,
                 senderNickname: req.body.senderNickname,
                 createdAt: new Date(),
-                type: 'like'
+                type: 'like',
+                isClicked: false
             })
         }
 
