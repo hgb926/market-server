@@ -28,23 +28,23 @@ const upload = multer({storage: multer.memoryStorage()});
 
 // =========================  SSE 설정  ======================== //
 // =============  글로벌 SSE 설정  ============= //
-let globalClient = {}; // 클라이언트 RootLayout 엔드포인트 { userId: response }
+let chatGlobalClient = {}; // 클라이언트 RootLayout 엔드포인트 { userId: response }
 
 router.get('/sse', (req, res) => {
     // 클라이언트의 userId를 query로 받는다
     const userId = req.query.userId;
-    console.log(`sse in userId : `, userId)
+    console.log(`chat sse in userId : `, userId)
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
     // client 연결을 userId에 매핑
-    globalClient[userId] = res;
+    chatGlobalClient[userId] = res;
 
     // 연결 종료 시 연결 삭제
     req.on('close', () => {
-        delete globalClient[userId];
+        delete chatGlobalClient[userId];
     });
 });
 
@@ -94,8 +94,8 @@ connectDB.then((client) => {
                 profileUrl: foundUser.profileUrl
             }
 
-            if (globalClient[takerId]) {
-                globalClient[takerId].write(`data: ${JSON.stringify(payload)}\n\n`);
+            if (chatGlobalClient[takerId]) {
+                chatGlobalClient[takerId].write(`data: ${JSON.stringify(payload)}\n\n`);
                 console.log("전송 완료")
             }
 

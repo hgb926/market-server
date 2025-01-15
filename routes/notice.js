@@ -4,10 +4,46 @@ const {formatRelativeTime} = require('./../util/timeFormat');
 const connectDB = require("../config/database");
 const router = express.Router();
 
+let noticeGlobalClient = {};
+// =========================  SSE 설정  ======================== //
+
+router.get('/sse', (req, res) => {
+    const userId = req.query.userId;
+    console.log(`notice sse in userId : `, userId)
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    noticeGlobalClient[userId] = res;
+
+    req.on('close', () => {
+        delete noticeGlobalClient[userId]
+    })
+})
+
+
+
 let db;
+let globalChangeStream;
 connectDB
     .then((client) => {
         db = client.db("market");
+        const condition = [
+            { $match: { operationType: "insert" } }
+        ]
+
+        globalChangeStream = db.collection('notice').watch(condition)
+
+        globalChangeStream.on('change', async (change) => {
+            const newNotice = change.fullDocument
+            const diffInMs = new Date() - new Date(newNotice.createdAt)
+            newNotice.createdAt = formatRelativeTime(diffInMs)
+
+            if (noticeGlobalClient[newNotice.writerId]) {
+                noticeGlobalClient[newNotice.writerId].write(`data: ${JSON.stringify(newNotice)}\n\n`)
+            }
+        })
     })
     .catch((err) => {
         console.error(err);
@@ -16,7 +52,7 @@ connectDB
 
 router.get('/:id', async (req, res) => {
     try {
-        console.log(req.params.id)
+
         const result = await db.collection('notice').find({
             writerId: new ObjectId(req.params.id)
         }).toArray();
@@ -24,8 +60,7 @@ router.get('/:id', async (req, res) => {
             const diffInMs = new Date() - new Date(notice.createdAt);
             notice.createdAt = formatRelativeTime(diffInMs)
         }
-        console.log(result)
-        console.log('result \n ',result)
+
 
         if (result) {
             res.status(200).json(result)

@@ -109,6 +109,8 @@ router.get('/', async (req, res) => {
             post.createdAt = formatRelativeTime(diffInMs)
         })
 
+
+
         res.status(200).json(posts);
     } catch (e) {
         console.error(e);
