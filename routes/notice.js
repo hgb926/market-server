@@ -75,7 +75,6 @@ router.get('/:id', async (req, res) => {
 
 router.post('/click', async (req, res) => {
     try {
-        console.log('noticeId ', req.body.noticeId)
         let foundNotice = await db.collection('notice').updateOne(
             {_id: new ObjectId(req.body.noticeId)},
             {$set: {isClicked: true}}
@@ -83,6 +82,20 @@ router.post('/click', async (req, res) => {
         res.status(200).json(foundNotice)
     } catch (e) {
         res.status(400).json("실패")
+    }
+})
+
+router.post('/click-all', async (req, res) => {
+    try {
+        console.log('req.body.writerId : ', req.body.writerId)
+        let result = await db.collection('notice').updateMany(
+            { writerId: new ObjectId(req.body.writerId) },
+            { $set: {isClicked: true}}
+        );
+        console.log('modify result \n', result)
+        res.status(200).json("ok")
+    } catch (e) {
+        res.status(400)
     }
 })
 
