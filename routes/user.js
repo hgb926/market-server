@@ -160,6 +160,8 @@ router.post("/register", upload.single("image"), async (req, res) => {
         let profileUrl = null;
         if (req.file) {
             profileUrl = await uploadToS3(req.file);
+        } else {
+            profileUrl = 'https://node-forum1217.s3.ap-northeast-2.amazonaws.com/uploads/1737089420019_useravatar.jpg' // 기본이미지
         }
 
         // 사용자 데이터 삽입
