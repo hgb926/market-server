@@ -11,7 +11,7 @@ const bcrypt = require('bcrypt');
 const MongoStore = require('connect-mongo');
 const cors = require('cors');
 const { createServer } = require('http');
-const { WebSocketServer } = require('ws');
+const { WebSocketServer, WebSocket } = require('ws');
 const {formatSendTime} = require("./util/timeFormat");
 
 
@@ -106,7 +106,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-    secret: '암호화 비번',
+    secret: process.env.PASSWORD_SECRET_KEY,
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 60 * 60 * 1000 },
