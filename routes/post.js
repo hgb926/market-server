@@ -197,4 +197,20 @@ router.post('/reaction', async (req, res) => {
     }
 })
 
+
+router.delete('/:id', async (req, res) => {
+    try {
+        console.log(`delete post id `,req.params.id)
+        let newVar = await db.collection('post').deleteOne({
+            _id: new ObjectId(req.params.id)
+        });
+        console.log(`삭제 결과  `, newVar)
+        res.status(200).json('성공')
+
+    } catch(e) {
+        res.status(400).json('실패')
+        console.log(e)
+    }
+})
+
 module.exports = router;
