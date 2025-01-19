@@ -221,6 +221,10 @@ router.get('/liked/:userId', async (req, res) => {
                 ]}
         ).toArray();
         if (result) {
+            result.reverse().forEach((post) => {
+                const diffInMs = new Date() - new Date(post.createdAt);
+                post.createdAt = formatRelativeTime(diffInMs)
+            })
             res.status(200).json(result)
         } else {
             res.status(204).json('none content')
