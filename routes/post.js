@@ -109,10 +109,10 @@ router.get('/', async (req, res) => {
             post.createdAt = formatRelativeTime(diffInMs)
         })
 
-        await db.collection('post').updateMany(
-            {}, // 조건 없이 모든 도큐먼트 선택
-            { $set: { likes: [], chats: 0 } } // `likes` 필드를 빈 배열로 설정
-        );
+        // await db.collection('post').updateMany(
+        //     {}, // 조건 없이 모든 도큐먼트 선택
+        //     { $set: { likes: [], chats: 0 } } // `likes` 필드를 빈 배열로 설정
+        // );
 
         res.status(200).json(posts);
     } catch (e) {
@@ -209,6 +209,24 @@ router.delete('/:id', async (req, res) => {
     } catch(e) {
         res.status(400).json('실패')
         console.log(e)
+    }
+})
+
+router.get('/liked/:userId', async (req, res) => {
+    try {
+        console.log('userId: ', req.params.userId)
+        let result = await db.collection('post').find(
+            {$or: [
+                    { likes: new ObjectId(req.params.userId) },
+                ]}
+        ).toArray();
+        if (result) {
+            res.status(200).json(result)
+        } else {
+            res.status(204).json('none content')
+        }
+    } catch (e) {
+        res.status(400).json('error')
     }
 })
 
