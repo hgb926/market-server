@@ -7,7 +7,7 @@ const addPost = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(500).send('서버 오류');
+        res.status(400).json('게시글 추가에 실패하였습니다');
     }
 };
 
@@ -18,7 +18,7 @@ const getPosts = async (req, res) => {
         res.status(200).json(posts);
     } catch (err) {
         console.error(err);
-        res.status(500).send('서버 오류');
+        res.status(400).json('게시글 목록을 찾지 못하였습니다');
     }
 };
 
@@ -29,7 +29,7 @@ const getPostDetail = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(400).send('에러 발생');
+        res.status(400).json('게시글을 찾지 못하였습니다');
     }
 };
 
@@ -40,7 +40,7 @@ const handleReaction = async (req, res) => {
         res.status(200).send(result);
     } catch (err) {
         console.error(err);
-        res.status(400).send('에러 발생');
+        res.status(400).json('좋아요를 찾지 못하였습니다');
     }
 };
 
@@ -51,7 +51,7 @@ const deletePost = async (req, res) => {
         res.status(200).json('성공');
     } catch (err) {
         console.error(err);
-        res.status(400).json('실패');
+        res.status(400).json('삭제할 게시글을 찾지못하였습니다.');
     }
 };
 
@@ -62,7 +62,7 @@ const getLikedPosts = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(400).json('에러 발생');
+        res.status(400).json('게시글을 찾지 못하였습니다');
     }
 };
 

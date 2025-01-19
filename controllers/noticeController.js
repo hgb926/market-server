@@ -12,7 +12,7 @@ const getNoticesByWriterId = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(400).json('실패');
+        res.status(400).json('알림을 찾을 수 없습니다');
     }
 };
 
@@ -23,7 +23,7 @@ const markNoticeAsClicked = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(400).json('실패');
+        res.status(400).json('알림을 찾지 못하였습니다');
     }
 };
 
@@ -34,7 +34,7 @@ const markAllNoticesAsClicked = async (req, res) => {
         res.status(200).json('ok');
     } catch (err) {
         console.error(err);
-        res.status(400).json('실패');
+        res.status(400).json('알림 모두읽기에 실패하였습니다.');
     }
 };
 

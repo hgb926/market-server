@@ -17,7 +17,7 @@ const createChatRoom = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(400).json({ message: false });
+        res.status(400).json('채팅방 생성에 실패하였습니다');
     }
 };
 
@@ -28,7 +28,7 @@ const getChatDetails = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(500);
+        res.status(400).json("채팅방을 찾을 수 없습니다.");
     }
 };
 
@@ -39,7 +39,7 @@ const getChatRoomInfo = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(500);
+        res.status(400).json('채팅방을 찾을 수 없습니다.');
     }
 };
 
@@ -50,7 +50,7 @@ const getUserChatList = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(400);
+        res.status(400).json('채팅 리스트를 불러오지 못하였습니다.');
     }
 };
 
@@ -61,7 +61,7 @@ const deleteChatRoom = async (req, res) => {
         res.status(200).send("삭제 성공");
     } catch (err) {
         console.error(err);
-        res.status(400);
+        res.status(400).json('삭제할 채팅방을 찾지 못하였습니다.');
     }
 };
 

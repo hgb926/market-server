@@ -9,12 +9,12 @@ class UserController {
     async getUser(req, res) {
         try {
             const user = await this.userService.findUserById(req.user.id);
-            if (!user) return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+            if (!user) return res.status(400).json("사용자 정보를 찾을 수 없습니다.");
 
             const { _id, email, nickname, address, zoneCode, profileUrl } = user;
             res.status(200).json({ id: _id, email, nickname, address, zoneCode, profileUrl });
         } catch (error) {
-            res.status(500).json({ message: "서버 오류", error: error.message });
+            res.status(500).json("서버 오류");
         }
     }
 
@@ -23,7 +23,7 @@ class UserController {
             const result = await this.userService.registerUser(req.body, req.file);
             res.status(200).json({ message: "회원가입 성공", data: result });
         } catch (error) {
-            res.status(500).json({ message: "회원가입 실패", error: error.message });
+            res.status(500).json("회원가입 실패");
         }
     }
 
@@ -32,7 +32,7 @@ class UserController {
             const code = await this.userService.sendVerificationCode(req.body.email);
             res.status(200).json(code);
         } catch (error) {
-            res.status(500).json({ message: "코드 전송 실패", error: error.message });
+            res.status(400).json( "코드 전송 실패");
         }
     }
 
@@ -40,11 +40,11 @@ class UserController {
         try {
             const user = await this.userService.findUserByNickname(req.body.nickname);
             if (user) {
-                return res.status(400).send("중복되는 닉네임입니다.");
+                return res.status(400).json("중복되는 닉네임입니다.");
             }
             res.status(200).send("사용 가능한 닉네임입니다!");
         } catch (error) {
-            res.status(500).json({ message: "서버 오류", error: error.message });
+            res.status(500).json("서버 오류");
         }
     }
 
@@ -52,7 +52,7 @@ class UserController {
         try {
             const { email, password, autoLogin } = req.body;
             const user = await this.userService.validatePassword(email, password);
-            if (!user) return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
+            if (!user) return res.status(400).json("이메일 또는 비밀번호가 일치하지 않습니다.");
 
             const expiresIn = autoLogin ? "30d" : "1d";
             const token = generateToken({ id: user._id, email: user.email }, expiresIn);
@@ -65,7 +65,7 @@ class UserController {
 
             res.status(200).json({ user });
         } catch (error) {
-            res.status(500).json({ message: "로그인 실패", error: error.message });
+            res.status(500).json( "로그인 실패");
         }
     }
 
