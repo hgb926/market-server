@@ -50,6 +50,7 @@ connectDB
         app.use("/post", require("./routes/post"));
         app.use("/chat", require("./routes/chat"));
         app.use("/notice", require("./routes/notice"));
+        app.use("/search", require("./routes/search"));
 
         // WebSocket 설정
         websocketConfig(server, db, formatSendTime);
