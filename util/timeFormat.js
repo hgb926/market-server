@@ -29,4 +29,6 @@ const formatSendTime = (time) => {
     return [`${fullDate}`, `${str} ${hours}:${minutes}`]
 }
 
-module.exports = {formatRelativeTime, formatSendTime}
+const formatMonthAndDay = (time) => time.getMonth()+1+'.' + time.getDate()
+
+module.exports = {formatRelativeTime, formatSendTime, formatMonthAndDay}

@@ -1,6 +1,6 @@
 const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
-const {formatRelativeTime} = require('./../util/timeFormat');
+const {formatMonthAndDay} = require('./../util/timeFormat');
 
 let db;
 connectDB
@@ -35,8 +35,7 @@ const getHistories = async (userId) => {
         userId: new ObjectId(userId)
     }).toArray();
     result.reverse().forEach((history) => {
-        const diffInMs = new Date() - new Date(history.createdAt);
-        history.createdAt = formatRelativeTime(diffInMs);
+        history.createdAt = formatMonthAndDay(history.createdAt);
     });
     return result
 }

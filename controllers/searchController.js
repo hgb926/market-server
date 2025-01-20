@@ -27,6 +27,8 @@ const getHistories = async (req, res) => {
     }
 }
 
+
+
 module.exports = {
     addHistory,
     getHistories,
