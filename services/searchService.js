@@ -13,10 +13,11 @@ connectDB
 
 const addHistory = async (data) => {
     if (!data.word || !data.userId) throw new Error('모든 필드를 입력해주세요.')
-    const flag = await db.collection('searchHistory').find({
+    const flag = await db.collection('searchHistory').findOne({
         keyword: data.word,
-    });
+    })
     if (flag) {
+        console.log('이미 등록')
         return {message: '이미 등록되어있습니다.'}
     } else {
         const payload = {
@@ -45,7 +46,6 @@ const deleteHistory = async (id) => {
 }
 
 const deleteHistories = async (id) => {
-    console.log(id)
     return await db.collection('searchHistory').deleteMany({
         userId: new ObjectId(id),
     })
