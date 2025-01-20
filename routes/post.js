@@ -25,4 +25,5 @@ router.delete('/:id', postController.deletePost);
 // 좋아요한 게시글 조회
 router.get('/liked/:userId', postController.getLikedPosts);
 
+router.get('/search/:keyword', postController.searchPosts)
 module.exports = router;

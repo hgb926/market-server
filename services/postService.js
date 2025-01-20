@@ -138,6 +138,17 @@ const getLikedPosts = async (userId) => {
     return posts;
 };
 
+const searchPosts = async (keyword) => {
+    const posts = await db.collection('post')
+        .find({title: {$regex: keyword}})
+        .toArray();
+    posts.reverse().forEach((post) => {
+        const diffInMs = new Date() - new Date(post.createdAt);
+        post.createdAt = formatRelativeTime(diffInMs);
+    });
+    return posts;
+}
+
 module.exports = {
     addPost,
     getPosts,
@@ -145,4 +156,5 @@ module.exports = {
     handleReaction,
     deletePost,
     getLikedPosts,
+    searchPosts
 };

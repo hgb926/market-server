@@ -29,7 +29,7 @@ const getPostDetail = async (req, res) => {
         res.status(200).json(result);
     } catch (err) {
         console.error(err);
-        res.status(400).json('게시글을 찾지 못하였습니다');
+        res.status(400).json({message: '게시글을 찾지 못하였습니다'});
     }
 };
 
@@ -66,6 +66,19 @@ const getLikedPosts = async (req, res) => {
     }
 };
 
+const searchPosts = async (req, res) => {
+    try {
+        const result = await postService.searchPosts(req.params.keyword);
+        if (result) {
+            res.status(200).json(result);
+        } else {
+            res.status(200).json({message: "검색 결과가 없습니다"})
+        }
+    } catch (e) {
+
+    }
+}
+
 module.exports = {
     addPost,
     getPosts,
@@ -73,4 +86,5 @@ module.exports = {
     handleReaction,
     deletePost,
     getLikedPosts,
+    searchPosts
 };
