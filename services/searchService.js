@@ -1,6 +1,6 @@
-const { ObjectId } = require('mongodb');
+const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
-const { formatRelativeTime } = require('./../util/timeFormat');
+const {formatRelativeTime} = require('./../util/timeFormat');
 
 let db;
 connectDB
@@ -13,13 +13,20 @@ connectDB
 
 const addHistory = async (data) => {
     if (!data.word || !data.userId) throw new Error('모든 필드를 입력해주세요.')
-    const payload = {
-        userId: new ObjectId(data.userId),
+    const flag = await db.collection('searchHistory').find({
         keyword: data.word,
-        createdAt: new Date(),
+    });
+    if (flag) {
+        return {message: '이미 등록되어있습니다.'}
+    } else {
+        const payload = {
+            userId: new ObjectId(data.userId),
+            keyword: data.word,
+            createdAt: new Date(),
+        }
+        const result = await db.collection('searchHistory').insertOne(payload);
+        return {message: '기록 등록 완료'}
     }
-    const result = await db.collection('searchHistory').insertOne(payload);
-    return { message: '기록 등록 완료' }
 }
 
 const getHistories = async (userId) => {
@@ -32,9 +39,7 @@ const getHistories = async (userId) => {
         history.createdAt = formatRelativeTime(diffInMs);
     });
     return result
-
 }
-
 
 
 module.exports = {
