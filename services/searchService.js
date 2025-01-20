@@ -40,8 +40,22 @@ const getHistories = async (userId) => {
     return result
 }
 
+const deleteHistory = async (id) => {
+    return await db.collection('searchHistory').deleteOne({ _id: new ObjectId(id) });
+}
+
+const deleteHistories = async (id) => {
+    console.log(id)
+    return await db.collection('searchHistory').deleteMany({
+        userId: new ObjectId(id),
+    })
+}
+
+
 
 module.exports = {
     addHistory,
     getHistories,
+    deleteHistory,
+    deleteHistories
 }

@@ -9,9 +9,9 @@ router.post('/', searchController.addHistory);
 router.get('/:id', searchController.getHistories)
 
 // 검색 기록 삭제
-router.delete('/:historyId')
+router.delete('/:historyId', searchController.deleteHistory)
 
 // 검색 기록 전체 삭제
-router.delete('/all/:id')
+router.delete('/all/:id', searchController.deleteHistories)
 
 module.exports = router;
