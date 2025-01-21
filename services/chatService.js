@@ -192,6 +192,36 @@ const deleteChatRoom = async (roomId) => {
     await db.collection('chatMsg').deleteMany({ room: new ObjectId(roomId) });
 };
 
+const getBuyChatList = async (id) => {
+    const chatRooms = await db.collection('chatRoom').find(
+            { 'customerInfo.customerId': new ObjectId(id) }
+    ).toArray();
+
+    chatRooms.forEach((room) => {
+        if (room.lastChatTime) {
+            const diffInMs = new Date() - new Date(room.lastChatTime);
+            room.relativeTime = formatRelativeTime(diffInMs);
+        }
+    });
+
+    return chatRooms;
+}
+
+const getSellChatList = async (id) => {
+    const chatRooms = await db.collection('chatRoom').find(
+        { 'sellerInfo.sellerId': new ObjectId(id) }
+    ).toArray();
+
+    chatRooms.forEach((room) => {
+        if (room.lastChatTime) {
+            const diffInMs = new Date() - new Date(room.lastChatTime);
+            room.relativeTime = formatRelativeTime(diffInMs);
+        }
+    });
+
+    return chatRooms;
+}
+
 module.exports = {
     handleGlobalSSE,
     handleRoomSSE,
@@ -200,4 +230,6 @@ module.exports = {
     getChatRoomInfo,
     getUserChatList,
     deleteChatRoom,
+    getBuyChatList,
+    getSellChatList,
 };
