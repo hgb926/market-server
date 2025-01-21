@@ -45,6 +45,7 @@ const getChatRoomInfo = async (req, res) => {
 
 // 유저의 채팅 리스트 조회
 const getUserChatList = async (req, res) => {
+    console.log(req.body.id)
     try {
         const result = await chatService.getUserChatList(req.body.id);
         res.status(200).json(result);
@@ -65,6 +66,28 @@ const deleteChatRoom = async (req, res) => {
     }
 };
 
+const getBuyChatList = async (req, res) => {
+    try {
+        console.log(req.body.id)
+        // await chatService.deleteChatRoom(req.params.customerId);
+        // res.status(200).json(result);
+    } catch (e) {
+        console.error(e);
+        res.status(400).json({message:"채팅방을 찾을 수 없습니다."});
+    }
+}
+
+const getSellChatList = async (req, res) => {
+    try {
+        console.log(req.body.id)
+        // await chatService.deleteChatRoom(req.params.sellerId);
+        // res.status(200).json(result);
+    } catch (e) {
+        console.error(e);
+        res.status(400).json({message:"채팅방을 찾을 수 없습니다."});
+    }
+}
+
 module.exports = {
     connectGlobalSSE,
     connectRoomSSE,
@@ -73,4 +96,6 @@ module.exports = {
     getChatRoomInfo,
     getUserChatList,
     deleteChatRoom,
+    getBuyChatList,
+    getSellChatList
 };

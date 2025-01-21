@@ -15,5 +15,7 @@ router.get('/chat-detail', chatController.getChatDetails);
 router.get('/detail', chatController.getChatRoomInfo);
 router.post('/list', chatController.getUserChatList);
 router.delete('/delete/:id', chatController.deleteChatRoom);
+router.post('/buy-list', chatController.getBuyChatList);
+router.post('/sell-list', chatController.getSellChatList);
 
 module.exports = router;
