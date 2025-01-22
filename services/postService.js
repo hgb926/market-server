@@ -50,17 +50,18 @@ const addPost = async (data, files) => {
         title,
         images: imageUrls,
         price: parseInt(price, 10),
-        suggestFlag: suggestFlag === 'true',
+        suggestFlag: suggestFlag,
         content,
         wantPlace,
         tradeType,
-        status: 'do not sell',
+        status: 'DO_NOT_SELL',
         distance: distanceNum,
         likes: [],
         chats: 0,
         viewCount: 0,
         createdAt: new Date(),
         category,
+        isDraft: false
     };
 
     const result = await db.collection('post').insertOne(postData);

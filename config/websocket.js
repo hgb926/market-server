@@ -19,9 +19,11 @@ module.exports = (server, db, formatSendTime) => {
             }
 
             if (data.event === "sendMessage") {
+                console.log(data)
                 await db.collection("chatMsg").insertOne({
                     room: new ObjectId(data.room),
-                    text: data.text,
+                    text: data.text || '',
+                    imageUrl: data.imageUrl || '',
                     writer: new ObjectId(data.writer),
                     date: new Date(),
                     taker: new ObjectId(data.taker),
