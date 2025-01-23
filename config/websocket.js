@@ -19,7 +19,7 @@ module.exports = (server, db, formatSendTime) => {
             }
 
             if (data.event === "sendMessage") {
-                console.log(data)
+
                 await db.collection("chatMsg").insertOne({
                     room: new ObjectId(data.room),
                     text: data.text || '',
@@ -34,7 +34,7 @@ module.exports = (server, db, formatSendTime) => {
                     {
                         $set: {
                             lastChatTime: new Date(),
-                            lastMsg: data.text,
+                            lastMsg: data.text ? data.text : '사진을 보냈습니다.',
                         },
                     }
                 );
@@ -47,7 +47,8 @@ module.exports = (server, db, formatSendTime) => {
                                 JSON.stringify({
                                     event: "serverToClient",
                                     room: data.room,
-                                    text: data.text,
+                                    text: data.text || '',
+                                    imageUrl: data.imageUrl || '',
                                     writer: data.writer,
                                     date: new Date(),
                                     formatTime: formatSendTime(new Date()),
