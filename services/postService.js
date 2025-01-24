@@ -54,7 +54,7 @@ const addPost = async (data, files) => {
         content,
         wantPlace,
         tradeType,
-        status: 'DO_NOT_SELL',
+        status: 'NOT_SORD_YET',
         distance: distanceNum,
         likes: [],
         chats: 0,

@@ -10,6 +10,11 @@ const connectRoomSSE = (req, res) => {
     chatService.handleRoomSSE(req, res);
 };
 
+// SSE 룸 판매상태 연결
+const connectPostStatusSSE = (req, res) => {
+    chatService.handlePostStatusSSE(req, res);
+}
+
 // 채팅방 생성
 const createChatRoom = async (req, res) => {
     try {
@@ -89,6 +94,7 @@ const getSellChatList = async (req, res) => {
 module.exports = {
     connectGlobalSSE,
     connectRoomSSE,
+    connectPostStatusSSE,
     createChatRoom,
     getChatDetails,
     getChatRoomInfo,

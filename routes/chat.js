@@ -8,6 +8,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // SSE 설정
 router.get('/sse', chatController.connectGlobalSSE);
 router.get('/sse/room', chatController.connectRoomSSE);
+router.get('/sse/room/post-status', chatController.connectPostStatusSSE);
 
 // 요청 처리
 router.post('/request', chatController.createChatRoom);

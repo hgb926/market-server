@@ -6,6 +6,7 @@ const { formatSendTime, formatRelativeTime } = require('../util/timeFormat');
 let db;
 let chatGlobalClient = {};
 let roomClient = {};
+let noticeGlobalClient = {};
 let globalChangeStream;
 let roomChangeStream;
 
@@ -101,6 +102,34 @@ const handleRoomSSE = (req, res) => {
         delete roomClient[userId];
     });
 };
+
+const handlePostStatusSSE = (req, res) => {
+    const userId = req.query.userId;
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    // 클라이언트 객체 저장
+    noticeGlobalClient[userId] = res;
+
+    // MongoDB 변경 사항 감지
+    const changeStream = db.collection('post').watch([{ $match: { operationType: 'update' } }], {
+        fullDocument: 'updateLookup',
+    });
+
+    changeStream.on('change', (change) => {
+        res.write(`data: ${JSON.stringify(change.fullDocument.status)}\n\n`);
+    });
+
+    req.on('close', () => {
+        console.log(`User ${userId} disconnected.`);
+        delete noticeGlobalClient[userId];
+        changeStream.close(); // 스트림 닫기
+    });
+};
+
 
 // 채팅방 생성
 const createChatRoom = async (data) => {
@@ -225,6 +254,7 @@ const getSellChatList = async (id) => {
 module.exports = {
     handleGlobalSSE,
     handleRoomSSE,
+    handlePostStatusSSE,
     createChatRoom,
     getChatDetails,
     getChatRoomInfo,
