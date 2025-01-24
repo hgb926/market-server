@@ -150,6 +150,14 @@ const searchPosts = async (keyword) => {
     return posts;
 }
 
+const changeStatus = async (body) => {
+    try {
+        await db.collection('post').updateOne({ _id: new ObjectId(body.postId) }, { $set: { status: body.status } });
+    } catch (e) {
+        return null
+    }
+}
+
 module.exports = {
     addPost,
     getPosts,
@@ -157,5 +165,6 @@ module.exports = {
     handleReaction,
     deletePost,
     getLikedPosts,
-    searchPosts
+    searchPosts,
+    changeStatus,
 };

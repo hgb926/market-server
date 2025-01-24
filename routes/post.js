@@ -27,4 +27,8 @@ router.get('/liked/:userId', postController.getLikedPosts);
 
 // 게시글 검색
 router.get('/search/:keyword', postController.searchPosts)
+
+// 판매 상태 변경
+router.post('/status', postController.changeStatus)
+
 module.exports = router;
