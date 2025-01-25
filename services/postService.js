@@ -158,6 +158,15 @@ const changeStatus = async (body) => {
     }
 }
 
+const getSoldLists = async (userId) => {
+    const posts = await db.collection('post').find({ writerId: new ObjectId(userId) }).toArray();
+    posts.reverse().forEach((post) => {
+        const diffInMs = new Date() - new Date(post.createdAt);
+        post.createdAt = formatRelativeTime(diffInMs);
+    });
+    return posts;
+}
+
 module.exports = {
     addPost,
     getPosts,
@@ -167,4 +176,5 @@ module.exports = {
     getLikedPosts,
     searchPosts,
     changeStatus,
+    getSoldLists,
 };

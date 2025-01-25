@@ -31,20 +31,16 @@ module.exports = (server, db, formatSendTime) => {
 
                 await db.collection("chatRoom").updateOne(
                     { _id: new ObjectId(data.room) },
-                    {
-                        $set: {
+                    { $set: {
                             lastChatTime: new Date(),
-                            lastMsg: data.text ? data.text : '사진을 보냈습니다.',
-                        },
-                    }
-                );
+                            lastMsg: data.text ? data.text : '사진을 보냈습니다.',},
+                    });
 
                 const room = rooms[data.room];
                 if (room) {
                     room.forEach((client) => {
                         if (client.readyState === ws.OPEN) {
-                            client.send(
-                                JSON.stringify({
+                            client.send(JSON.stringify({
                                     event: "serverToClient",
                                     room: data.room,
                                     text: data.text || '',

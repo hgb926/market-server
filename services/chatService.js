@@ -124,7 +124,6 @@ const handlePostStatusSSE = (req, res) => {
     });
 
     req.on('close', () => {
-        console.log(`User ${userId} disconnected.`);
         delete noticeGlobalClient[userId];
         changeStream.close(); // 스트림 닫기
     });
@@ -176,9 +175,9 @@ const getMessagePayload = async (message) => {
 
     return {
         ...message,
-        nickname: user.nickname,
-        postTitle: room.postInfo.postTitle,
-        profileUrl: user.profileUrl,
+        nickname: user?.nickname || '',
+        postTitle: room?.postInfo?.postTitle || '',
+        profileUrl: user?.profileUrl || '',
     };
 };
 

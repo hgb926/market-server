@@ -43,6 +43,7 @@ const handleSSE = (req, res) => {
     noticeGlobalClient[userId] = res;
 
     req.on('close', () => {
+        console.log(`User ${userId} SSE 연결 해제`);
         delete noticeGlobalClient[userId];
     });
 };

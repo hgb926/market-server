@@ -25,6 +25,9 @@ router.delete('/:id', postController.deletePost);
 // 좋아요한 게시글 조회
 router.get('/liked/:userId', postController.getLikedPosts);
 
+// 판매 내역 조회
+router.get('/sold/:userId', postController.getSoldLists);
+
 // 게시글 검색
 router.get('/search/:keyword', postController.searchPosts)
 
