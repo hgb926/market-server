@@ -1,7 +1,7 @@
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { ObjectId } = require('mongodb');
+const {S3Client, PutObjectCommand} = require('@aws-sdk/client-s3');
+const {ObjectId} = require('mongodb');
 const connectDB = require('./../config/database');
-const { formatRelativeTime } = require('./../util/timeFormat');
+const {formatRelativeTime} = require('./../util/timeFormat');
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION,
@@ -36,7 +36,7 @@ const uploadToS3 = async (file) => {
 
 // 게시글 추가
 const addPost = async (data, files) => {
-    const { title, content, category, price, suggestFlag, writerId, writerInfo, wantPlace, tradeType } = data;
+    const {title, content, category, price, suggestFlag, writerId, writerInfo, wantPlace, tradeType} = data;
 
     if (!title || !content) throw new Error('모든 필드를 입력해주세요.');
     if (!files || files.length === 0) throw new Error('이미지를 업로드해주세요.');
@@ -65,7 +65,7 @@ const addPost = async (data, files) => {
     };
 
     const result = await db.collection('post').insertOne(postData);
-    return { message: '게시글이 성공적으로 등록되었습니다.', postId: result.insertedId };
+    return {message: '게시글이 성공적으로 등록되었습니다.', postId: result.insertedId};
 };
 
 // 게시글 목록 조회
@@ -80,8 +80,8 @@ const getPosts = async () => {
 
 // 게시글 상세 조회
 const getPostDetail = async (postId) => {
-    const result = await db.collection('post').findOne({ _id: new ObjectId(postId) });
-    await db.collection('post').updateOne({ _id: new ObjectId(postId) }, { $inc: { viewCount: 1 } });
+    const result = await db.collection('post').findOne({_id: new ObjectId(postId)});
+    await db.collection('post').updateOne({_id: new ObjectId(postId)}, {$inc: {viewCount: 1}});
     const diffInMs = new Date() - new Date(result.createdAt);
     result.createdAt = formatRelativeTime(diffInMs);
     return result;
@@ -89,9 +89,9 @@ const getPostDetail = async (postId) => {
 
 // 좋아요/좋아요 취소 처리
 const handleReaction = async (data) => {
-    const { postId, writerId, senderNickname, postImage, postTitle, userId } = data;
+    const {postId, writerId, senderNickname, postImage, postTitle, userId} = data;
 
-    const post = await db.collection('post').findOne({ _id: new ObjectId(postId) });
+    const post = await db.collection('post').findOne({_id: new ObjectId(postId)});
 
     const isLiked = await db.collection('notice').findOne({
         writerId: new ObjectId(writerId),
@@ -115,23 +115,23 @@ const handleReaction = async (data) => {
     const userObjectId = new ObjectId(userId);
     if (post.likes.some((like) => like.toString() === userObjectId.toString())) {
         const updatedLikes = post.likes.filter((like) => like.toString() !== userObjectId.toString());
-        await db.collection('post').updateOne({ _id: new ObjectId(postId) }, { $set: { likes: updatedLikes } });
+        await db.collection('post').updateOne({_id: new ObjectId(postId)}, {$set: {likes: updatedLikes}});
         return '취소';
     } else {
         const updatedLikes = [...post.likes, userObjectId];
-        await db.collection('post').updateOne({ _id: new ObjectId(postId) }, { $set: { likes: updatedLikes } });
+        await db.collection('post').updateOne({_id: new ObjectId(postId)}, {$set: {likes: updatedLikes}});
         return '추가';
     }
 };
 
 // 게시글 삭제
 const deletePost = async (postId) => {
-    await db.collection('post').deleteOne({ _id: new ObjectId(postId) });
+    await db.collection('post').deleteOne({_id: new ObjectId(postId)});
 };
 
 // 좋아요한 게시글 목록 조회
 const getLikedPosts = async (userId) => {
-    const posts = await db.collection('post').find({ likes: new ObjectId(userId) }).toArray();
+    const posts = await db.collection('post').find({likes: new ObjectId(userId)}).toArray();
     posts.reverse().forEach((post) => {
         const diffInMs = new Date() - new Date(post.createdAt);
         post.createdAt = formatRelativeTime(diffInMs);
@@ -152,19 +152,39 @@ const searchPosts = async (keyword) => {
 
 const changeStatus = async (body) => {
     try {
-        await db.collection('post').updateOne({ _id: new ObjectId(body.postId) }, { $set: { status: body.status } });
+        if (body.partnerId && body.status === "SOLD") {
+            console.log(body)
+            await db.collection('post').updateOne(
+                {_id: new ObjectId(body.postId)},  // _id 값으로 문서 찾기
+                {$set: {customerId: new ObjectId(body.partnerId)}}  // sellerId 추가
+            );
+        }
+        await db.collection('post').updateOne({_id: new ObjectId(body.postId)}, {$set: {status: body.status}});
     } catch (e) {
         return null
     }
 }
 
 const getSoldLists = async (userId) => {
-    const posts = await db.collection('post').find({ writerId: new ObjectId(userId) }).toArray();
+    const posts = await db.collection('post').find({writerId: new ObjectId(userId)}).toArray();
     posts.reverse().forEach((post) => {
         const diffInMs = new Date() - new Date(post.createdAt);
         post.createdAt = formatRelativeTime(diffInMs);
     });
     return posts;
+}
+
+const getBuyList = async (userId) => {
+    const posts = await db.collection('post').find({customerId: new ObjectId(userId)}).toArray();
+    if (posts) {
+        posts.reverse().forEach((post) => {
+            const diffInMs = new Date() - new Date(post.createdAt);
+            post.createdAt = formatRelativeTime(diffInMs);
+        });
+        return posts;
+    } else {
+        return null;
+    }
 }
 
 module.exports = {
@@ -177,4 +197,5 @@ module.exports = {
     searchPosts,
     changeStatus,
     getSoldLists,
+    getBuyList,
 };

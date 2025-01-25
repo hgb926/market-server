@@ -99,6 +99,20 @@ const getSoldLists = async (req, res) => {
     }
 }
 
+const getBuyList = async (req, res) => {
+    try {
+        const result = await postService.getBuyList(req.params.userId);
+        if (result) {
+            res.status(200).json(result);
+        } else {
+            res.status(200).json({message: '구매한 내역이 없습니다.'})
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(400).json('게시글을 찾지 못하였습니다');
+    }
+}
+
 module.exports = {
     addPost,
     getPosts,
@@ -109,4 +123,5 @@ module.exports = {
     searchPosts,
     changeStatus,
     getSoldLists,
+    getBuyList,
 };
