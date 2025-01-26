@@ -113,6 +113,16 @@ const getBuyList = async (req, res) => {
     }
 }
 
+const getItemsByCategory = async (req, res) => {
+    try {
+        const result = await postService.getItemsByCategory(req.params.category);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(400).json('게시글을 찾지 못하였습니다');
+    }
+}
+
 module.exports = {
     addPost,
     getPosts,
@@ -124,4 +134,5 @@ module.exports = {
     changeStatus,
     getSoldLists,
     getBuyList,
+    getItemsByCategory,
 };

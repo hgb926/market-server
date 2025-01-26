@@ -37,4 +37,7 @@ router.get('/search/:keyword', postController.searchPosts)
 // 판매 상태 변경
 router.post('/status', postController.changeStatus)
 
+// 카테고리별 상품 검색
+router.get('/:category', postController.getItemsByCategory)
+
 module.exports = router;

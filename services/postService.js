@@ -187,6 +187,16 @@ const getBuyList = async (userId) => {
     }
 }
 
+const getItemsByCategory = async (category) => {
+    const posts = await db.collection('post').find({category: category}).toArray();
+    console.log(posts)
+    posts.reverse().forEach((post) => {
+        const diffInMs = new Date() - new Date(post.createdAt);
+        post.createdAt = formatRelativeTime(diffInMs);
+    });
+    return posts;
+}
+
 module.exports = {
     addPost,
     getPosts,
@@ -198,4 +208,5 @@ module.exports = {
     changeStatus,
     getSoldLists,
     getBuyList,
+    getItemsByCategory
 };
